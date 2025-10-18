@@ -173,6 +173,17 @@ def save_to_csv(occupations):
         })
 
     occupations_df = pd.DataFrame(occupations_data)
-    skills_df.to_csv('skills.csv', index=False)
-    knowledge_df.to_csv('knowledge.csv', index=False)
-    occupations_df.to_csv('occupations.csv', index=False)
+    # skills_df.to_csv('skills.csv', index=False)
+    # knowledge_df.to_csv('knowledge.csv', index=False)
+    occupations_df.to_csv('occupations.csv', mode='a', index=False, header=False)
+
+# the following uri correspond to the ones present in the uris file
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C2634'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C25'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C2161'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C3432'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C2421'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C233'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C234'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C214'))
+save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C2652'))

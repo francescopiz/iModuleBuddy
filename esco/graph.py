@@ -275,3 +275,4 @@ def populate_graph():
                                         professor_uuid=professor_uuid)
 
 
+populate_graph()
