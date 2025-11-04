@@ -14,6 +14,7 @@ class Student:
                  assessment_type: str,
                  oral_assessment: bool,
                  project_work: bool):
+        """Initialize a Student object."""
         self.desired_jobs = desired_jobs or []
         self.id = id
         self.name = name
@@ -30,12 +31,11 @@ class Student:
         """Converts the Student object to a dictionary."""
         return {
             'desired_jobs': self.desired_jobs,
-            'full_time': self.full_time,
             'id': self.id,
             'name': self.name,
             'surname': self.surname,
-            'taken_courses': self.taken_courses,
             'expected_semesters': self.expected_semesters,
+            'taken_courses': self.taken_courses,
             'desired_lecturers': self.desired_lecturers,
             'available_days': self.available_days,
             'assessment_type': self.assessment_type,
@@ -48,23 +48,23 @@ class Student:
         """Creates a Student object from a dictionary."""
         return cls(
             desired_jobs=data.get('desired_jobs', []),
-            id=data['id'],
-            name=data['name'],
-            surname=data['surname'],
-            expected_semesters=data['expected_semesters'],
+            id=data.get('id', ""),
+            name=data.get('name', ""),
+            surname=data.get('surname', ""),
+            expected_semesters=data.get('expected_semesters', 0),
             taken_courses=data.get('taken_courses', []),
-            desired_lecturers=data.get('desired_lecturers'),
+            desired_lecturers=data.get('desired_lecturers', []),
             available_days=data.get('available_days', []),
-            assessment_type=data['assessment_type'],
-            oral_assessment=data['oral_assessment'],
-            project_work=data['project_work']
+            assessment_type=data.get('assessment_type', ""),
+            oral_assessment=data.get('oral_assessment', False),
+            project_work=data.get('project_work', False)
         )
 
     def __repr__(self) -> str:
         """String representation of the object."""
-        return f"Student(id={self.id}, name={self.name}, surname={self.surname})"
+        return f"Student(id='{self.id}', name='{self.name}', surname='{self.surname}')"
 
     @classmethod
     def new_student(cls) -> 'Student':
         """Creates a new student with default values."""
-        return cls([], True, "", "", "", 3, [], [], [], "", False, False)
+        return cls([], "", "", "", 3, [], [], [], "", False, False)
