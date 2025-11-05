@@ -7,9 +7,9 @@ from utils.auth import get_supabase
 from utils.models import Student
 
 supabase: Client = get_supabase()
-user = supabase.auth.get_user().user
 
 def get_student():
+    user = get_user()
     response = supabase.table('student').select('*').eq('id', user.id).execute()
     if len(response.data) == 0:
         return None
@@ -17,6 +17,7 @@ def get_student():
     return student
 
 def create_student(student: Student):
+    user = get_user()
     try:
         student.id = user.id
         supabase.table("student").insert(student.to_dict()).execute()
@@ -38,6 +39,7 @@ def update_student(student: Student):
         st.error("Update failed: " + str(e))
 
 def get_work_experience():
+    user = get_user()
     response = supabase.from_('work_experience').select('company_name, occupation, start_date, end_date, current_work, id, part_time').eq('user_id', user.id).order("start_date", desc=True).execute()
     return response.data
 
@@ -46,6 +48,7 @@ def has_work_experience():
     return experiences is not None and len(experiences) > 0
 
 def add_work_experience(company_name: str, occupation: str, start_date: date, end_date: date, current_work: bool, part_time: bool):
+    user = get_user()
     try:
         we = {
             'company_name': company_name,
@@ -84,3 +87,6 @@ def delete_work_experience(we_id: str):
     except Exception as e:
         print(e)
         st.error("Deletion failed: " + str(e))
+
+def get_user():
+    return supabase.auth.get_user().user
