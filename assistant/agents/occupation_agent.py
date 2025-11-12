@@ -1,7 +1,7 @@
 from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.core.workflow import Context
 from assistant.llm import llm
-from utils.neo4j_methods import Neo4jMethods
+from utils.graphdb_methods import GraphDbMethods
 
 
 async def suggest_modules_by_occupation(ctx: Context) -> str:
@@ -10,8 +10,8 @@ async def suggest_modules_by_occupation(ctx: Context) -> str:
     occupations = current_state["desired_occupations"]
     taken_modules = current_state["taken_modules"]
     try:
-        neo4j_methods = Neo4jMethods()
-        modules_data = neo4j_methods.get_modules_by_occupation(
+        graphdb_methods = GraphDbMethods()
+        modules_data = graphdb_methods.get_modules_by_occupation(
             occupations, taken_modules
         )
         current_state["modules_by_occupations"] = modules_data

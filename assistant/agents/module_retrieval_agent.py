@@ -2,7 +2,7 @@ from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.core.workflow import Context
 from assistant.llm import llm
 from utils.job_ranker import JobRanker
-from utils.neo4j_methods import Neo4jMethods
+from utils.graphdb_methods import GraphDbMethods
 from utils.supabase_methods import has_work_experience
 
 
@@ -38,8 +38,8 @@ def get_modules_scored_by_past_occupation(state):
     occupation_list = [job[0] for job in ranked_jobs]
     score_lookup = {job[0]: job[1] for job in ranked_jobs}
 
-    neo4j_methods = Neo4jMethods()
-    modules_data = neo4j_methods.get_modules_by_occupation(occupation_list, taken_modules)
+    graphdb_methods = GraphDbMethods()
+    modules_data = graphdb_methods.get_modules_by_occupation(occupation_list, taken_modules)
     modules_data_with_scores = [rec.data() for rec in modules_data]
 
     for item in modules_data_with_scores:
@@ -72,8 +72,8 @@ def get_modules_scored_by_future_occupation(state):
     taken_modules = state["taken_modules"]
     desired_occupations = state["desired_occupations"]
 
-    neo4j_methods = Neo4jMethods()
-    modules_data = neo4j_methods.get_modules_by_occupation(
+    graphdb_methods = GraphDbMethods()
+    modules_data = graphdb_methods.get_modules_by_occupation(
         desired_occupations, taken_modules
     )
     return [rec.data() for rec in modules_data]
@@ -105,8 +105,8 @@ def get_modules_scored_by_preferences(state):
     project_work = state["project_work"]
     oral_assessment = state["oral_assessment"]
 
-    neo4j_methods = Neo4jMethods()
-    return neo4j_methods.get_modules_by_preferences(
+    graphdb_methods = GraphDbMethods()
+    return graphdb_methods.get_modules_by_preferences(
         taken_modules,
         available_days,
         desired_lecturers,
@@ -121,8 +121,8 @@ async def suggest_modules_balanced(ctx: Context) -> str:
     current_state = await ctx.get("state")
 
     try:
-        neo4j_methods = Neo4jMethods()
-        modules = neo4j_methods.get_module_overview()
+        graphdb_methods = GraphDbMethods()
+        modules = graphdb_methods.get_module_overview()
 
         # Add scores from past occupations
         if has_work_experience(): # skip if student does not have work experience

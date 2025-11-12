@@ -1,7 +1,7 @@
 from datetime import date
 import streamlit as st
 
-from utils.neo4j_methods import Neo4jMethods
+from utils.graphdb_methods import GraphDbMethods
 from utils.supabase_methods import (
     get_work_experience,
     add_work_experience,
@@ -10,8 +10,8 @@ from utils.supabase_methods import (
 
 st.title("Working Career Details")
 work_experiences = get_work_experience()
-neo4j_methods = Neo4jMethods()
-occupations = neo4j_methods.get_occupations()
+graphdb_methods = GraphDbMethods()
+occupations = graphdb_methods.get_occupations()
 with st.expander("Add Work Experience"):
     current_occ = st.checkbox("I currently work here")
     if current_occ:

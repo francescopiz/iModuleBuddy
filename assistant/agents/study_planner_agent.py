@@ -2,7 +2,7 @@ from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.core.workflow import Context
 
 from assistant.llm import llm
-from utils.neo4j_methods import Neo4jMethods
+from utils.graphdb_methods import GraphDbMethods
 
 
 async def extract_teaching_sessions(ctx: Context) -> str:
@@ -16,8 +16,8 @@ async def extract_teaching_sessions(ctx: Context) -> str:
         if record["module"]["module_type"] != "mandatory":
             modules.append(record["module"]["module_title"])
     try:
-        neo4j_methods = Neo4jMethods()
-        modules_data = neo4j_methods.get_teaching_sessions_by_modules(
+        graphdb_methods = GraphDbMethods()
+        modules_data = graphdb_methods.get_teaching_sessions_by_modules(
             modules=modules, taken_modules=taken_modules
         )
         # Update the state with the retrieved data

@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.neo4j_methods import Neo4jMethods
+from utils.graphdb_methods import GraphDbMethods
 from utils.supabase_methods import get_student, update_student, create_student
 from utils.models import Student
 
@@ -22,10 +22,10 @@ new_account = False
 if student is None:
     new_account = True
     student = Student.new_student()
-neo4j_methods = Neo4jMethods()
-courses = neo4j_methods.get_filtered_modules()
-occupations = neo4j_methods.get_occupations()
-professors = neo4j_methods.get_professors()
+graphdb_methods = GraphDbMethods()
+courses = graphdb_methods.get_filtered_modules()
+occupations = graphdb_methods.get_occupations()
+professors = graphdb_methods.get_professors()
 
 project_type_labels = {
     "Individual Project": INDIVIDUAL,

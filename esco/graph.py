@@ -13,7 +13,6 @@ GRAPHDB_PASSWORD = 'root'
 
 # Define custom namespaces
 EX = Namespace("https://imodulebuddy.org/ontology#")
-# The "SCHEMA" namespace definition has been removed as requested.
 
 # Constants for CSV paths
 CSV_DIRECTORY = os.path.join(os.getcwd(), 'csv')

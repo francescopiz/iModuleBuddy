@@ -1,9 +1,8 @@
 import streamlit as st
 from SPARQLWrapper import SPARQLWrapper, JSON
-import re  # <-- Required for the new preference matching function
+import re
 
-
-class Neo4jMethods:
+class GraphDbMethods:
     def __init__(self):
         """Initialize the connection to the GraphDB repository."""
         self.endpoint = st.secrets["GRAPHDB_ENDPOINT"]
