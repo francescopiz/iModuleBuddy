@@ -65,8 +65,15 @@ The system follows a three-layer architecture:
 - Ollama (for embedding model)
 - Anthropic API Key (for Claude LLM)
 
-#### Neo4j Population [REQUIRED]
-To populate the Neo4j database with the ESCO ontology and FHNW course data, please put yourself under the main repository and run:
+### GraphDB Population [REQUIRED]
+First, you must manually create a new repository in GraphDB named "**IModuleBuddy**" on GraphDB. To populate this repository, please navigate to the main repository directory.
+
+First, run the following command to import the ontologies:
+```bash
+python import_ttl_graphdb.py
+```
+
+Subsequently, run this command to load the CSV files:
 ```bash
 python esco/graph.py
 ```
