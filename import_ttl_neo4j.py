@@ -1,26 +1,87 @@
-from rdflib_neo4j import Neo4jStoreConfig, Neo4jStore, HANDLE_VOCAB_URI_STRATEGY, HANDLE_MULTIVAL_STRATEGY
-from rdflib import Graph
+import requests
+import os
 
-# set the configuration to connect to your Aura DB
-AURA_DB_URI="bolt://localhost:7687"
-AURA_DB_USERNAME="neo4j"
-AURA_DB_PWD="ciaociao"
 
-auth_data = {'uri': AURA_DB_URI,
-             'database': "neo4j",
-             'user': AURA_DB_USERNAME,
-             'pwd': AURA_DB_PWD}
+class GraphDBTTLLoader:
+    """
+    Automatically loads TTL files into GraphDB repository.
 
-# Define your custom mappings & store config
-config = Neo4jStoreConfig(auth_data=auth_data,
-                          handle_vocab_uri_strategy=HANDLE_VOCAB_URI_STRATEGY.IGNORE,
-                          handle_multival_strategy=HANDLE_MULTIVAL_STRATEGY.ARRAY,
-                          batching=True)
+    Usage:
+        loader = GraphDBTTLLoader()
+    """
 
-file_path = 'ModuleSelection.ttl'
+    def __init__(self,
+                 graphdb_url="http://localhost:7200",
+                 repository_id="IModuleBuddy",
+                 ttl_file="ModuleSelection.ttl",
+                 username=None,
+                 password=None,
+                 auto_load=True):
+        """
+        Initialize and auto-load TTL file into GraphDB.
 
-# Create the RDF Graph, parse & ingest the data to Neo4j, and close the store(If the field batching is set to True in the Neo4jStoreConfig, remember to close the store to prevent the loss of any uncommitted records.)
-neo4j_aura = Graph(store=Neo4jStore(config=config))
-# Calling the parse method will implictly open the store
-neo4j_aura.parse(file_path, format="ttl")
-neo4j_aura.close(True)
+        Args:
+            graphdb_url: GraphDB server URL
+            repository_id: Repository ID (default: "IModuleBuddy")
+            ttl_file: Path to the TTL file
+            username: Optional username for authentication
+            password: Optional password for authentication
+            auto_load: If True, automatically load on initialization
+        """
+        self.graphdb_url = graphdb_url.rstrip('/')
+        self.repository_id = repository_id
+        self.ttl_file = ttl_file
+        self.username = username
+        self.password = password
+
+        self.statements_url = f"{self.graphdb_url}/repositories/{self.repository_id}/statements"
+
+        # Validate TTL file exists
+        if not os.path.exists(ttl_file):
+            raise FileNotFoundError(f"TTL file not found: {ttl_file}")
+
+        # Auto-load if enabled
+        if auto_load:
+            self.load_ttl()
+
+    def _get_auth(self):
+        """Get authentication tuple if credentials provided."""
+        if self.username and self.password:
+            return self.username, self.password
+        return None
+
+    def load_ttl(self):
+        """Load TTL file directly into GraphDB repository."""
+        try:
+            print(f"Loading TTL file: {self.ttl_file}")
+            print(f"Target repository: {self.repository_id}")
+
+            # Read the TTL file
+            with open(self.ttl_file, 'rb') as f:
+                ttl_data = f.read()
+
+            # Upload to GraphDB
+            headers = {
+                'Content-Type': 'application/x-turtle'
+            }
+
+            response = requests.post(
+                self.statements_url,
+                data=ttl_data,
+                headers=headers,
+                auth=self._get_auth()
+            )
+
+            if response.status_code in [200, 204]:
+                print(f"✓ Successfully loaded {self.ttl_file} into repository '{self.repository_id}'")
+            else:
+                raise Exception(f"GraphDB returned status {response.status_code}: {response.text}")
+
+        except Exception as e:
+            print(f"✗ Error loading TTL file: {str(e)}")
+            raise
+
+
+# Example usage
+if __name__ == "__main__":
+    loader = GraphDBTTLLoader()
