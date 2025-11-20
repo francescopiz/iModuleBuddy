@@ -9,3 +9,4 @@ llama-index-core~=0.12.27
 langchain-community~=0.3.14
 llama-index-llms-anthropic
 langchain_ollama
+SPARQLWrapper
