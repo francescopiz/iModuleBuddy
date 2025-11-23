@@ -275,7 +275,13 @@ def populate_graph():
         add_skill(g, row['title'], 'knowledge', row['index'], row['description'], row['uri'])
 
     print("Loading occupations...")
-    occupations_df = pd.read_csv(OCCUPATIONS_CSV)
+    # No headers, so we need to specify column names
+    occupations_df = pd.read_csv(
+        OCCUPATIONS_CSV,
+        header=None,  # No header row
+        names=['occupation', 'uri', 'description', 'essential_skills',
+               'essential_knowledge', 'optional_skills', 'optional_knowledge']
+    )
     for _, row in occupations_df.iterrows():
         add_occupation(g, row['occupation'], row['uri'], row['description'])
 
