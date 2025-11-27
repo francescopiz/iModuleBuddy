@@ -5,6 +5,9 @@ API_OCCUPATION_URL = 'https://ec.europa.eu/esco/api/resource/occupation'
 API_SKILL_URL = 'https://ec.europa.eu/esco/api/resource/skill'
 SELECTED_VERSION = 'v1.2.0'
 
+# --- 1. MEMORIA GLOBALE PER EVITARE DUPLICATI ---
+# Questo set terrà traccia di tutti gli URI già visitati.
+VISITED_URIS = set()
 
 class Skill:
     def __init__(self, title, uri, skill_type, description=""):
@@ -94,6 +97,14 @@ def build_occupation(json_data):
 
 
 def gather_occupations(uri):
+    # --- 2. CONTROLLO DUPLICATI ---
+    # Se abbiamo già visitato questo URI, ritorniamo una lista vuota immediatamente.
+    if uri in VISITED_URIS:
+        return []
+
+    # Aggiungiamo l'URI al registro dei visitati
+    VISITED_URIS.add(uri)
+
     json_data = fetch_occupation_json(uri)
     occupations = []
 
@@ -104,58 +115,23 @@ def gather_occupations(uri):
     for narrower_occupation in narrower_uris:
         narrower_occupation_uri = narrower_occupation.get('uri')
         if narrower_occupation_uri:
+            # La chiamata ricorsiva userà il controllo VISITED_URIS all'inizio, prevenendo loop e duplicati
             occupations.extend(gather_occupations(narrower_occupation_uri))
 
     if 'hasEssentialSkill' in json_data.get('_links', {}):
         occupation = build_occupation(json_data)
         occupations.append(occupation)
-        print(occupation.title + ' DONE')
+        print(f"{occupation.title} DONE")
+
     return occupations
 
 
-def save_to_csv(occupations):
-    # Create two dictionaries to store unique skills and knowledge
-    skills_dict = {}
-    knowledge_dict = {}
-
-    # Iterate over each occupation
-    for occupation in occupations:
-        # Combine essential and optional skills
-        all_skills = occupation.skills + occupation.optional_skills
-
-        for skill in all_skills:
-            if skill.skill_type == 'skill':
-                # Add to skills dictionary if not already present
-                if skill.title not in skills_dict:
-                    skills_dict[skill.title] = skill
-            elif skill.skill_type == 'knowledge':
-                # Add to knowledge dictionary if not already present
-                if skill.title not in knowledge_dict:
-                    knowledge_dict[skill.title] = skill
-
-    # Sort the skills and knowledge alphabetically, case-insensitive
-    sorted_skills = sorted(skills_dict.values(), key=lambda s: s.title.lower())
-    sorted_knowledge = sorted(knowledge_dict.values(), key=lambda k: k.title.lower())
-
-    # Create DataFrames for skills and knowledge with indexing, descriptions, and URIs
-    skills_data = {
-        'index': [f'S{i + 1}' for i in range(len(sorted_skills))],
-        'title': [skill.title for skill in sorted_skills],
-        'description': [skill.description for skill in sorted_skills],
-        'uri': [skill.uri for skill in sorted_skills]
-    }
-    skills_df = pd.DataFrame(skills_data)
-
-    knowledge_data = {
-        'index': [f'K{i + 1}' for i in range(len(sorted_knowledge))],
-        'title': [knowledge.title for knowledge in sorted_knowledge],
-        'description': [knowledge.description for knowledge in sorted_knowledge],
-        'uri': [knowledge.uri for knowledge in sorted_knowledge]
-    }
-    knowledge_df = pd.DataFrame(knowledge_data)
-
-    # Create occupation CSV
+def save_to_csv(occupations, filename='occupations_1.csv'):
+    # Create occupation CSV data structure
     occupations_data = []
+
+    print(f"Starting CSV generation for {len(occupations)} unique occupations...")
+
     for occupation in occupations:
         essential_skills_uris = [sk.uri for sk in occupation.skills if sk.skill_type == 'skill']
         essential_knowledge_uris = [kn.uri for kn in occupation.skills if kn.skill_type == 'knowledge']
@@ -173,17 +149,25 @@ def save_to_csv(occupations):
         })
 
     occupations_df = pd.DataFrame(occupations_data)
-    # skills_df.to_csv('skills.csv', index=False)
-    # knowledge_df.to_csv('knowledge.csv', index=False)
-    occupations_df.to_csv('occupations.csv', mode='a', index=False, header=False)
 
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C0'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C1'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C2'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C3'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C4'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C5'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C6'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C7'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C8'))
-save_to_csv(gather_occupations('http://data.europa.eu/esco/isco/C9'))
+    # --- 3. SCRITTURA UNICA CON HEADER ---
+    # Scriviamo tutto in una volta sola.
+    # index=False: niente numeri di riga (0, 1, 2...)
+    # header=True: (default) scrive i nomi delle colonne 'occupation', 'uri', ecc.
+    occupations_df.to_csv(filename, index=False)
+    print(f"File '{filename}' saved successfully with headers.")
+
+
+# --- ESECUZIONE PRINCIPALE ---
+
+# 1. Raccogli tutte le occupazioni in memoria
+all_occupations = []
+root_uris = [f'http://data.europa.eu/esco/isco/C{i}' for i in range(10)]
+
+print("Start gathering occupations...")
+for root_uri in root_uris:
+    print(f"Processing root: {root_uri}")
+    all_occupations.extend(gather_occupations(root_uri))
+
+# 2. Salva tutto in una volta (questo risolve il problema delle colonne e dei duplicati di scrittura)
+save_to_csv(all_occupations)
