@@ -1,5 +1,9 @@
 import pandas as pd
-
+"""
+    Class used to remove duplicates from the occupations.csv file.
+    The duplicates are identified based on the 'uri' column.
+    The cleaned file is saved as occupations_cleaned.csv with headers.
+"""
 def clean_occupations_csv(input_file, output_file):
     # 1. Define column names in the correct order
     column_names = [
